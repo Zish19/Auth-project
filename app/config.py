@@ -12,6 +12,7 @@ class Settings:
     COOKIE_NAME = "sid"
     COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
     COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
+    AUTH_MODE = os.getenv("AUTH_MODE", "dev_bypass").lower()
 
 
 settings = Settings()

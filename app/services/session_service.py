@@ -1,7 +1,10 @@
 import json
+import logging
 import secrets
 from app.config import settings
 from app.db import r
+
+logger = logging.getLogger(__name__)
 
 
 def create_session(username: str):
@@ -16,13 +19,31 @@ def get_session(sid: str):
     if not sid:
         return None
 
-    data = r.get(f"session:{sid}")
+    try:
+        data = r.get(f"session:{sid}")
+    except Exception:
+        logger.exception("auth.session.fetch_failed")
+        return None
+
     if not data:
         return None
 
-    return json.loads(data)
+    try:
+        session = json.loads(data)
+    except (TypeError, json.JSONDecodeError):
+        logger.warning("auth.session.invalid_payload")
+        return None
+
+    if not isinstance(session, dict) or "username" not in session:
+        logger.warning("auth.session.invalid_shape")
+        return None
+
+    return session
 
 
 def destroy_session(sid: str):
     if sid:
-        r.delete(f"session:{sid}")
+        try:
+            r.delete(f"session:{sid}")
+        except Exception:
+            logger.exception("auth.session.destroy_failed")
