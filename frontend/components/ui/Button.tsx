@@ -9,6 +9,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function Button({ className, children, loading, disabled, ...props }: ButtonProps) {
+  // Destructure out the React animation event handlers that conflict with
+  // Framer Motion's own onAnimationStart / onAnimationEnd prop types.
+  const {
+    onAnimationStart: _onAnimationStart,
+    onAnimationEnd: _onAnimationEnd,
+    onDragStart: _onDragStart,
+    onDragEnd: _onDragEnd,
+    onDrag: _onDrag,
+    ...safeProps
+  } = props as ButtonHTMLAttributes<HTMLButtonElement> & Record<string, unknown>;
+
   return (
     <motion.button
       whileTap={{ scale: 0.97, opacity: 0.85 }}
@@ -19,7 +30,7 @@ export function Button({ className, children, loading, disabled, ...props }: But
         className,
       )}
       disabled={loading || disabled}
-      {...props}
+      {...(safeProps as object)}
     >
       {loading ? "Processing..." : children}
     </motion.button>
