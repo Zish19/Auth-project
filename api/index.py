@@ -15,7 +15,7 @@ from app.routes.auth import router as auth_router
 # App
 # ---------------------------------------------------------------------------
 
-app = FastAPI(title=settings.APP_NAME, root_path="/api/backend")
+app = FastAPI(title=settings.APP_NAME)
 
 # Allow the Next.js frontend (same origin on Vercel, or localhost in dev) to
 # send cookies / credentials.
@@ -44,4 +44,6 @@ def root():
 # ---------------------------------------------------------------------------
 
 # Mangum adapts ASGI → AWS Lambda / Vercel's serverless runtime.
-handler = Mangum(app, lifespan="off")
+# api_gateway_base_path strips "/api/backend" from every incoming path so
+# FastAPI sees "/auth/register" instead of "/api/backend/auth/register".
+handler = Mangum(app, lifespan="off", api_gateway_base_path="/api/backend")
