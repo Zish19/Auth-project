@@ -1,10 +1,11 @@
 import pytest
 import base64
 import binascii
+import hashlib
 
 from app.crypto.verify import verify_proof, _safe_decode_proof_component, ProofFormatError
-from app.crypto.verify import _safe_decode_proof_component, ProofFormatError
 
+import ecdsa
 
 def test_empty_string():
     with pytest.raises(ProofFormatError, match="Proof component cannot be empty"):
@@ -36,7 +37,52 @@ def test_invalid_format():
     with pytest.raises(ProofFormatError, match="Proof component must be valid hex or base64url"):
         _safe_decode_proof_component("invalid!!__")
 
+def generate_valid_proof(challenge: str):
+    sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
+    vk = sk.verifying_key
+    public_key_hex = vk.to_string().hex()
+
+    k_sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
+    k = int.from_bytes(k_sk.to_string(), 'big')
+    R_point = k * ecdsa.SECP256k1.generator
+
+    R_bytes = ecdsa.VerifyingKey.from_public_point(R_point, curve=ecdsa.SECP256k1).to_string()
+    R_hex = R_bytes.hex()
+
+    # Apply secure Fiat-Shamir hash identical to verification logic
+    hasher = hashlib.sha256()
+    hasher.update(R_bytes)
+    hasher.update(bytes.fromhex(public_key_hex))
+    hasher.update(challenge.encode('utf-8'))
+    h = int(hasher.hexdigest(), 16)
+
+    x = int.from_bytes(sk.to_string(), 'big')
+
+    s = (k + h * x) % ecdsa.SECP256k1.generator.order()
+    s_hex = s.to_bytes(32, 'big').hex()
+
+    return public_key_hex, R_hex, s_hex
+
 def test_verify_proof_valid_hex():
+    challenge = "dummy_challenge"
+    public_key, R, s = generate_valid_proof(challenge)
+    assert verify_proof(public_key, challenge, R, s) is True
+
+def test_verify_proof_valid_base64url():
+    challenge = "dummy_challenge"
+    public_key_hex, R_hex, s_hex = generate_valid_proof(challenge)
+
+    public_key_b64 = base64.urlsafe_b64encode(bytes.fromhex(public_key_hex)).decode('utf-8')
+    R_b64 = base64.urlsafe_b64encode(bytes.fromhex(R_hex)).decode('utf-8')
+    s_b64 = base64.urlsafe_b64encode(bytes.fromhex(s_hex)).decode('utf-8')
+
+    assert verify_proof(public_key_b64, challenge, R_b64, s_b64) is True
+
+def test_verify_proof_invalid_proof():
+    challenge = "dummy_challenge"
+    public_key, R, s = generate_valid_proof(challenge)
+    # Tamper with the challenge
+    assert verify_proof(public_key, "wrong_challenge", R, s) is False
     from ecdsa import SigningKey, SECP256k1
     sk = SigningKey.generate(curve=SECP256k1)
     vk = sk.get_verifying_key()
