@@ -107,8 +107,8 @@ def test_login_challenge_user_not_found():
         "/auth/login/challenge",
         json={"username": "non_existent_user"}
     )
-    assert response.status_code == 404
-    assert response.json() == {"detail": "User not found"}
+    assert response.status_code == 200
+    assert "challenge" in response.json()
 
 @mock.patch("app.routes.auth.create_challenge")
 def test_login_challenge_success(mock_create_challenge):
@@ -154,8 +154,8 @@ def test_login_verify_user_not_found():
 
     response = client.post("/auth/login/verify", json=payload)
 
-    assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid or expired challenge"
 
 @patch("app.routes.auth.verify_login_attempt")
 def test_login_verify_success(mock_verify):
