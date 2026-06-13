@@ -3,6 +3,7 @@ import base64
 import binascii
 
 from app.crypto.verify import verify_proof, _safe_decode_proof_component, ProofFormatError
+from app.crypto.verify import _safe_decode_proof_component, ProofFormatError
 
 
 def test_empty_string():
