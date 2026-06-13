@@ -28,3 +28,4 @@ env/
 # Editor
 .vscode/
 .idea/
+.coverage
