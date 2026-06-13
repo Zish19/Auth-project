@@ -5,6 +5,10 @@ from unittest.mock import patch
 
 from app.main import app
 from app.config import settings
+from fastapi.testclient import TestClient
+from unittest import mock
+
+from app.main import app
 from app.routes.auth import USERS
 
 client = TestClient(app)
