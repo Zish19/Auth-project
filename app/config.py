@@ -14,5 +14,10 @@ class Settings:
     COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
     AUTH_MODE = os.getenv("AUTH_MODE", "dev_bypass").lower()
 
+    @property
+    def ALLOWED_ORIGINS(self):
+        origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+        return [origin.strip() for origin in origins_str.split(",") if origin.strip()]
+
 
 settings = Settings()
