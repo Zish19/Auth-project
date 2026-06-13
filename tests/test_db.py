@@ -1,5 +1,5 @@
 import pytest
-from backend.db import DummyRedis
+from app.db import DummyRedis
 
 def test_dummy_redis_init():
     redis = DummyRedis()

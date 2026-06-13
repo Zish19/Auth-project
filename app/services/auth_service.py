@@ -1,10 +1,10 @@
 import logging
 from fastapi import HTTPException, status
 
-from backend.config import settings
-from backend.crypto.verify import ProofFormatError, verify_proof
-from backend.services.challenge_service import get_challenge, mark_challenge_used
-from backend.services.session_service import create_session
+from app.config import settings
+from app.crypto.verify import ProofFormatError, verify_proof
+from app.services.challenge_service import get_challenge, mark_challenge_used
+from app.services.session_service import create_session
 
 logger = logging.getLogger(__name__)
 

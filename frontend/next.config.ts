@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async rewrites() {
     // In production (Vercel), /api/backend/* is handled by the Python serverless
-    // function via vercel.json rewrites — no rewrite needed from Next.js.
+    // function via vercel.json routes — no rewrite needed from Next.js.
     if (process.env.NODE_ENV === "production") {
       return [];
     }

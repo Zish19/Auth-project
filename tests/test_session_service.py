@@ -2,8 +2,8 @@ import json
 import pytest
 from unittest.mock import patch
 
-from backend.services.session_service import create_session, get_session
-from backend.config import settings
+from app.services.session_service import create_session, get_session
+from app.config import settings
 
 
 @patch("app.services.session_service.r.setex")

@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from unittest.mock import patch
-from backend.main import app
-from backend.config import settings
+from app.main import app
+from app.config import settings
 
 @patch("app.routes.auth.get_session")
 def test_me_no_cookie(mock_get_session):

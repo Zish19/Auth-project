@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from backend.main import app
-from backend.routes.auth import USERS
+from app.main import app
+from app.routes.auth import USERS
 
 client = TestClient(app)
 

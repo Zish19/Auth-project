@@ -8,7 +8,7 @@ import os
 import sys
 
 # ---------------------------------------------------------------------------
-# Ensure the repo root is on sys.path so `from backend.xxx import yyy` works
+# Ensure the repo root is on sys.path so `from app.xxx import yyy` works
 # inside Vercel's Lambda sandbox (the builder only adds api/ by default).
 # ---------------------------------------------------------------------------
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,8 +22,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
-from backend.config import settings
-from backend.routes.auth import router as auth_router
+from app.config import settings
+from app.routes.auth import router as auth_router
 
 logger = logging.getLogger(__name__)
 
@@ -39,18 +39,13 @@ _STRIP_PREFIXES = ["/api/backend", "/api/index", "/api"]
 
 class StripBasePath(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        vercel_path = request.query_params.get("vercel_path")
-        if vercel_path:
-            request.scope["path"] = vercel_path
-            request.scope["raw_path"] = vercel_path.encode()
-        else:
-            path: str = request.scope["path"]
-            for prefix in _STRIP_PREFIXES:
-                if path == prefix or path.startswith(prefix + "/"):
-                    stripped = path[len(prefix):] or "/"
-                    request.scope["path"] = stripped
-                    request.scope["raw_path"] = stripped.encode()
-                    break
+        path: str = request.scope["path"]
+        for prefix in _STRIP_PREFIXES:
+            if path == prefix or path.startswith(prefix + "/"):
+                stripped = path[len(prefix):] or "/"
+                request.scope["path"] = stripped
+                request.scope["raw_path"] = stripped.encode()
+                break
         return await call_next(request)
 
 

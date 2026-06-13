@@ -1,8 +1,8 @@
 import json
 import logging
 import secrets
-from backend.config import settings
-from backend.db import r
+from app.config import settings
+from app.db import r
 
 logger = logging.getLogger(__name__)
 
