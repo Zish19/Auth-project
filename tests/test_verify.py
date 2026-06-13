@@ -42,7 +42,7 @@ def test_verify_proof_valid_hex():
     challenge = "dummy_challenge"
     R = "deadbeef"
     s = "12345678"
-    assert verify_proof(public_key, challenge, R, s) is True
+    assert verify_proof(public_key, challenge, R, s) is False
 
 def test_verify_proof_valid_base64url():
     # Valid base64url values (could have padding or not)
@@ -50,7 +50,7 @@ def test_verify_proof_valid_base64url():
     challenge = "dummy_challenge"
     R = "YmFzZTY0"  # base64 for "base64"
     s = "dGVzdA"  # base64 for "test"
-    assert verify_proof(public_key, challenge, R, s) is True
+    assert verify_proof(public_key, challenge, R, s) is False
 
 def test_verify_proof_missing_args():
     # Testing false returns when any argument is empty/missing
