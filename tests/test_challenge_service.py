@@ -173,12 +173,12 @@ def test_mark_challenge_used_invalid_payload():
     assert mark_challenge_used(challenge_id) is False
 
 
-def test_mark_challenge_used_setex_exception():
+def test_mark_challenge_used_eval_exception():
     username = "testuser"
     r.store.clear()
     r._ttls.clear()
 
     challenge_id, challenge = create_challenge(username)
 
-    with mock.patch("app.services.challenge_service.r.setex", side_effect=Exception("Redis error")):
+    with mock.patch("app.services.challenge_service.r.eval", side_effect=Exception("Redis error")):
         assert mark_challenge_used(challenge_id) is False

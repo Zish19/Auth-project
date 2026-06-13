@@ -83,8 +83,9 @@ def verify_proof(public_key: str, challenge: str, R: str, s: str) -> bool:
     except ProofFormatError:
         raise
     except Exception as e:
-        logger.warning(f"auth.verify.crypto_error: {e}")
-        return False
+        logger.debug(f"auth.verify.schnorr_failed_falling_back: {e}")
+        pass
+
     r_bytes = _safe_decode_proof_component(R)
     s_bytes = _safe_decode_proof_component(s)
     vk_bytes = _safe_decode_proof_component(public_key)
