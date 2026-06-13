@@ -15,6 +15,52 @@ def setup_users():
     USERS.clear()
     yield
     USERS.clear()
+from app.config import settings
+from fastapi.testclient import TestClient
+from unittest import mock
+
+from app.main import app
+from app.routes.auth import USERS
+
+client = TestClient(app)
+
+@patch("app.routes.auth.get_session")
+def test_me_success(mock_get_session):
+    mock_get_session.return_value = {"username": "testuser"}
+
+    # Set the cookie explicitly for the TestClient
+    client.cookies.set(settings.COOKIE_NAME, "valid_sid")
+
+    response = client.get("/auth/me")
+
+    assert response.status_code == 200
+    assert response.json() == {"username": "testuser"}
+    mock_get_session.assert_called_once_with("valid_sid")
+
+@patch("app.routes.auth.get_session")
+def test_me_invalid_session(mock_get_session):
+    mock_get_session.return_value = None
+
+    client.cookies.set(settings.COOKIE_NAME, "invalid_sid")
+
+    response = client.get("/auth/me")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Not authenticated"}
+    mock_get_session.assert_called_once_with("invalid_sid")
+
+@patch("app.routes.auth.get_session")
+def test_me_no_cookie(mock_get_session):
+    mock_get_session.return_value = None
+
+    # Ensure no cookies are set
+    client.cookies.clear()
+
+    response = client.get("/auth/me")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Not authenticated"}
+    mock_get_session.assert_called_once_with(None)
 
 
 def test_login_challenge_user_not_found():
@@ -96,3 +142,34 @@ def test_login_verify_success(mock_verify):
     cookies = response.cookies
     assert settings.COOKIE_NAME in cookies
     assert cookies[settings.COOKIE_NAME] == mock_session_id
+@patch("app.routes.auth.destroy_session")
+def test_logout_with_cookie(mock_destroy_session):
+    # Set up the cookie in the TestClient
+    client.cookies.set(settings.COOKIE_NAME, "test_sid_123")
+
+    response = client.post("/auth/logout")
+
+    assert response.status_code == 200
+    assert response.json() == {"message": "Logged out"}
+
+    # Verify destroy_session was called
+    mock_destroy_session.assert_called_once_with("test_sid_123")
+
+    # Verify cookie was deleted
+    set_cookie = response.headers.get("set-cookie")
+    assert set_cookie is not None
+    assert settings.COOKIE_NAME in set_cookie
+    assert 'Max-Age=0' in set_cookie or 'expires=' in set_cookie.lower()
+
+@patch("app.routes.auth.destroy_session")
+def test_logout_without_cookie(mock_destroy_session):
+    # Ensure no cookies are set
+    client.cookies.clear()
+
+    response = client.post("/auth/logout")
+
+    assert response.status_code == 200
+    assert response.json() == {"message": "Logged out"}
+
+    # Verify destroy_session was called with None
+    mock_destroy_session.assert_called_once_with(None)
