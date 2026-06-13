@@ -2,8 +2,8 @@ import pytest
 from unittest.mock import patch
 from fastapi import HTTPException
 
-from app.services.auth_service import verify_login_attempt
-from app.crypto.verify import ProofFormatError
+from backend.services.auth_service import verify_login_attempt
+from backend.crypto.verify import ProofFormatError
 
 
 @pytest.fixture

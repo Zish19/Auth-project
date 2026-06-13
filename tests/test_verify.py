@@ -3,7 +3,7 @@ import base64
 import binascii
 import hashlib
 
-from app.crypto.verify import verify_proof, _safe_decode_proof_component, ProofFormatError
+from backend.crypto.verify import verify_proof, _safe_decode_proof_component, ProofFormatError
 
 import ecdsa
 

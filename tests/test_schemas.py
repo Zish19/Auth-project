@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from app.schemas import RegisterRequest, LoginChallengeRequest
+from backend.schemas import RegisterRequest, LoginChallengeRequest
 
 def test_register_request_strip_whitespace():
     # Test that whitespace is stripped from username and public_key
@@ -36,7 +36,7 @@ def test_register_request_valid():
     req = RegisterRequest(username="validuser", public_key="validkey")
     assert req.username == "validuser"
     assert req.public_key == "validkey"
-from app.schemas import LoginChallengeRequest
+from backend.schemas import LoginChallengeRequest
 
 def test_login_challenge_request_strip():
     # Test that whitespace is stripped from the beginning and end

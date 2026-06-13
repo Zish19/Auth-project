@@ -2,8 +2,8 @@ from fastapi.testclient import TestClient
 import pytest
 from unittest import mock
 
-from app.main import app
-from app.routes.auth import USERS
+from backend.main import app
+from backend.routes.auth import USERS
 
 client = TestClient(app)
 
@@ -12,9 +12,9 @@ from fastapi.testclient import TestClient
 from unittest import mock
 from unittest.mock import patch
 
-from app.main import app
-from app.routes.auth import USERS
-from app.config import settings
+from backend.main import app
+from backend.routes.auth import USERS
+from backend.config import settings
 
 client = TestClient(app)
 
@@ -54,12 +54,12 @@ def setup_users():
     USERS.clear()
     yield
     USERS.clear()
-from app.config import settings
+from backend.config import settings
 from fastapi.testclient import TestClient
 from unittest import mock
 
-from app.main import app
-from app.routes.auth import USERS
+from backend.main import app
+from backend.routes.auth import USERS
 
 client = TestClient(app)
 
