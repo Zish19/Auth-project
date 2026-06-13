@@ -1,10 +1,10 @@
 import json
 from unittest import mock
-from app.services.challenge_service import create_challenge, get_challenge
-from app.db import r
-from app.config import settings
+from backend.services.challenge_service import create_challenge, get_challenge
+from backend.db import r
+from backend.config import settings
 
-from app.services.challenge_service import mark_challenge_used
+from backend.services.challenge_service import mark_challenge_used
 
 
 def test_create_challenge():
@@ -38,7 +38,7 @@ def test_create_challenge():
     ttl = r.ttl(key)
     assert ttl == settings.CHALLENGE_TTL_SECONDS
 
-from app.services.challenge_service import mark_challenge_used, get_challenge
+from backend.services.challenge_service import mark_challenge_used, get_challenge
 
 def test_mark_challenge_used():
     username = "testuser"

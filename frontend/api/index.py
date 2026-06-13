@@ -8,7 +8,7 @@ import os
 import sys
 
 # ---------------------------------------------------------------------------
-# Ensure the repo root is on sys.path so `from app.xxx import yyy` works
+# Ensure the repo root is on sys.path so `from backend.xxx import yyy` works
 # inside Vercel's Lambda sandbox (the builder only adds api/ by default).
 # ---------------------------------------------------------------------------
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,8 +22,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
-from app.config import settings
-from app.routes.auth import router as auth_router
+from backend.config import settings
+from backend.routes.auth import router as auth_router
 
 logger = logging.getLogger(__name__)
 

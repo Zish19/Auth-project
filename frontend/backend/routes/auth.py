@@ -1,21 +1,21 @@
 import logging
 from fastapi import APIRouter, HTTPException, Response, Request
-from app.schemas import (
+from backend.schemas import (
     RegisterRequest,
     LoginChallengeRequest,
     LoginChallengeResponse,
     LoginVerifyRequest,
     MessageResponse
 )
-from app.services.challenge_service import (
+from backend.services.challenge_service import (
     create_challenge,
 )
-from app.services.session_service import (
+from backend.services.session_service import (
     get_session,
     destroy_session
 )
-from app.services.auth_service import verify_login_attempt
-from app.config import settings
+from backend.services.auth_service import verify_login_attempt
+from backend.config import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
