@@ -4,6 +4,9 @@ from app.services.challenge_service import create_challenge, get_challenge
 from app.db import r
 from app.config import settings
 
+from app.services.challenge_service import mark_challenge_used
+
+
 def test_create_challenge():
     username = "testuser"
 
@@ -85,3 +88,54 @@ def test_get_challenge_missing_fields():
 
     res = get_challenge("missing_fields")
     assert res is None
+
+
+def test_mark_challenge_used_success():
+    username = "testuser"
+    r.store.clear()
+    r._ttls.clear()
+
+    challenge_id, challenge = create_challenge(username)
+    assert mark_challenge_used(challenge_id) is True
+
+    # Assert that used became True
+    key = f"challenge:{challenge_id}"
+    stored_data = r.get(key)
+    payload = json.loads(stored_data)
+    assert payload["used"] is True
+
+
+def test_mark_challenge_used_not_found():
+    r.store.clear()
+    r._ttls.clear()
+    assert mark_challenge_used("nonexistent_id") is False
+
+
+def test_mark_challenge_used_get_exception():
+    r.store.clear()
+    r._ttls.clear()
+
+    with mock.patch("app.services.challenge_service.r.get", side_effect=Exception("Redis error")):
+        assert mark_challenge_used("some_id") is False
+
+
+def test_mark_challenge_used_invalid_payload():
+    r.store.clear()
+    r._ttls.clear()
+
+    challenge_id = "bad_json_id"
+    key = f"challenge:{challenge_id}"
+    r.setex(key, 60, "not a valid json")
+
+    assert mark_challenge_used(challenge_id) is False
+
+
+def test_mark_challenge_used_setex_exception():
+    username = "testuser"
+    r.store.clear()
+    r._ttls.clear()
+
+    challenge_id, challenge = create_challenge(username)
+
+    with mock.patch("app.services.challenge_service.r.setex", side_effect=Exception("Redis error")):
+        assert mark_challenge_used(challenge_id) is False
