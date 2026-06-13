@@ -36,6 +36,7 @@ def test_register_request_valid():
     req = RegisterRequest(username="validuser", public_key="validkey")
     assert req.username == "validuser"
     assert req.public_key == "validkey"
+from app.schemas import LoginChallengeRequest
 
 def test_login_challenge_request_strip():
     # Test that whitespace is stripped from the beginning and end
