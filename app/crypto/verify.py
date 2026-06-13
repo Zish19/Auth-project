@@ -42,4 +42,4 @@ def verify_proof(public_key: str, challenge: str, R: str, s: str) -> bool:
     _safe_decode_proof_component(s)
 
     logger.debug("auth.verify.proof_parsed")
-    return True
+    return False
