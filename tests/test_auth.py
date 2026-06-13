@@ -4,6 +4,9 @@ from unittest import mock
 
 from app.main import app
 from app.routes.auth import USERS
+
+client = TestClient(app)
+
 import pytest
 from fastapi.testclient import TestClient
 from unittest import mock
