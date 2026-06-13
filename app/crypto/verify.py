@@ -56,3 +56,5 @@ def verify_proof(public_key: str, challenge: str, R: str, s: str) -> bool:
     if is_valid:
         logger.debug("auth.verify.proof_verified")
     return is_valid
+    logger.debug("auth.verify.proof_parsed")
+    return False

@@ -51,6 +51,9 @@ def test_verify_proof_valid_hex():
     s = sig[32:].hex()
 
     assert verify_proof(public_key, challenge, R, s) is True
+    R = "deadbeef"
+    s = "12345678"
+    assert verify_proof(public_key, challenge, R, s) is False
 
 def test_verify_proof_valid_base64url():
     from ecdsa import SigningKey, SECP256k1
@@ -68,6 +71,9 @@ def test_verify_proof_valid_base64url():
     s = base64.urlsafe_b64encode(sig[32:]).decode('utf-8')
 
     assert verify_proof(public_key, challenge, R, s) is True
+    R = "YmFzZTY0"  # base64 for "base64"
+    s = "dGVzdA"  # base64 for "test"
+    assert verify_proof(public_key, challenge, R, s) is False
 
 def test_verify_proof_missing_args():
     # Testing false returns when any argument is empty/missing
