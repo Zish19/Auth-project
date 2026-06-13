@@ -37,7 +37,6 @@ def register(body: RegisterRequest):
 def login_challenge(body: LoginChallengeRequest):
     if body.username not in USERS:
         logger.warning("auth.challenge.user_missing", extra={"username": body.username})
-        raise HTTPException(status_code=404, detail="User not found")
 
     challenge_id, challenge = create_challenge(body.username)
     logger.info(
@@ -57,7 +56,6 @@ def login_verify(body: LoginVerifyRequest, response: Response):
     user_pk = USERS.get(body.username)
     if not user_pk:
         logger.warning("auth.verify.user_missing", extra={"username": body.username})
-        raise HTTPException(status_code=404, detail="User not found")
 
     sid = verify_login_attempt(
         username=body.username,
