@@ -37,19 +37,36 @@ def test_invalid_format():
         _safe_decode_proof_component("invalid!!__")
 
 def test_verify_proof_valid_hex():
-    # Valid hex values for R and s
-    public_key = "dummy_pk"
+    from ecdsa import SigningKey, SECP256k1
+    sk = SigningKey.generate(curve=SECP256k1)
+    vk = sk.get_verifying_key()
+
+    public_key = vk.to_string().hex()
     challenge = "dummy_challenge"
-    R = "deadbeef"
-    s = "12345678"
+
+    import hashlib
+    msg = challenge.encode("utf-8")
+    sig = sk.sign(msg, hashfunc=hashlib.sha256)
+    R = sig[:32].hex()
+    s = sig[32:].hex()
+
     assert verify_proof(public_key, challenge, R, s) is True
 
 def test_verify_proof_valid_base64url():
-    # Valid base64url values (could have padding or not)
-    public_key = "dummy_pk"
+    from ecdsa import SigningKey, SECP256k1
+    import base64
+    sk = SigningKey.generate(curve=SECP256k1)
+    vk = sk.get_verifying_key()
+
+    public_key = base64.urlsafe_b64encode(vk.to_string()).decode('utf-8')
     challenge = "dummy_challenge"
-    R = "YmFzZTY0"  # base64 for "base64"
-    s = "dGVzdA"  # base64 for "test"
+
+    import hashlib
+    msg = challenge.encode("utf-8")
+    sig = sk.sign(msg, hashfunc=hashlib.sha256)
+    R = base64.urlsafe_b64encode(sig[:32]).decode('utf-8')
+    s = base64.urlsafe_b64encode(sig[32:]).decode('utf-8')
+
     assert verify_proof(public_key, challenge, R, s) is True
 
 def test_verify_proof_missing_args():
