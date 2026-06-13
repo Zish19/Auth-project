@@ -83,6 +83,43 @@ def test_verify_proof_invalid_proof():
     public_key, R, s = generate_valid_proof(challenge)
     # Tamper with the challenge
     assert verify_proof(public_key, "wrong_challenge", R, s) is False
+    from ecdsa import SigningKey, SECP256k1
+    sk = SigningKey.generate(curve=SECP256k1)
+    vk = sk.get_verifying_key()
+
+    public_key = vk.to_string().hex()
+    challenge = "dummy_challenge"
+
+    import hashlib
+    msg = challenge.encode("utf-8")
+    sig = sk.sign(msg, hashfunc=hashlib.sha256)
+    R = sig[:32].hex()
+    s = sig[32:].hex()
+
+    assert verify_proof(public_key, challenge, R, s) is True
+    R = "deadbeef"
+    s = "12345678"
+    assert verify_proof(public_key, challenge, R, s) is False
+
+def test_verify_proof_valid_base64url():
+    from ecdsa import SigningKey, SECP256k1
+    import base64
+    sk = SigningKey.generate(curve=SECP256k1)
+    vk = sk.get_verifying_key()
+
+    public_key = base64.urlsafe_b64encode(vk.to_string()).decode('utf-8')
+    challenge = "dummy_challenge"
+
+    import hashlib
+    msg = challenge.encode("utf-8")
+    sig = sk.sign(msg, hashfunc=hashlib.sha256)
+    R = base64.urlsafe_b64encode(sig[:32]).decode('utf-8')
+    s = base64.urlsafe_b64encode(sig[32:]).decode('utf-8')
+
+    assert verify_proof(public_key, challenge, R, s) is True
+    R = "YmFzZTY0"  # base64 for "base64"
+    s = "dGVzdA"  # base64 for "test"
+    assert verify_proof(public_key, challenge, R, s) is False
 
 def test_verify_proof_missing_args():
     # Testing false returns when any argument is empty/missing

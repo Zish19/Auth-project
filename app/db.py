@@ -20,4 +20,23 @@ class DummyRedis:
         self._ttls.pop(key, None)
 
 
+
+    def eval(self, script: str, numkeys: int, *keys_and_args):
+        import json
+        keys = keys_and_args[:numkeys]
+        args = keys_and_args[numkeys:]
+
+        # Simple mock for the specific Lua script
+        key = keys[0]
+        data = self.get(key)
+        if not data:
+            return 0
+
+        try:
+            obj = json.loads(data)
+            obj["used"] = True
+            self.store[key] = json.dumps(obj)
+            return 1
+        except Exception:
+            return 0
 r = DummyRedis()

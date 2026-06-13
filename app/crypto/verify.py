@@ -2,6 +2,9 @@ import base64
 import binascii
 import hashlib
 import logging
+import hashlib
+
+from ecdsa import VerifyingKey, SECP256k1, BadSignatureError, MalformedPointError
 
 import ecdsa
 
@@ -33,6 +36,7 @@ def _safe_decode_proof_component(value: str) -> bytes:
 def verify_proof(public_key: str, challenge: str, R: str, s: str) -> bool:
     """
     Safely parse proof inputs before real cryptographic verification is added.
+    Safely parse proof inputs and verify using ECDSA over SECP256k1.
     """
     if not (public_key and challenge and R and s):
         return False
@@ -81,3 +85,23 @@ def verify_proof(public_key: str, challenge: str, R: str, s: str) -> bool:
     except Exception as e:
         logger.warning(f"auth.verify.crypto_error: {e}")
         return False
+    r_bytes = _safe_decode_proof_component(R)
+    s_bytes = _safe_decode_proof_component(s)
+    vk_bytes = _safe_decode_proof_component(public_key)
+
+    try:
+        vk = VerifyingKey.from_string(vk_bytes, curve=SECP256k1)
+        sig_bytes = r_bytes + s_bytes
+        msg_bytes = challenge.encode("utf-8")
+        is_valid = vk.verify(sig_bytes, msg_bytes, hashfunc=hashlib.sha256)
+    except (BadSignatureError, MalformedPointError):
+        return False
+    except Exception as e:
+        logger.warning(f"Unexpected error in proof verification: {e}")
+        return False
+
+    if is_valid:
+        logger.debug("auth.verify.proof_verified")
+    return is_valid
+    logger.debug("auth.verify.proof_parsed")
+    return False
