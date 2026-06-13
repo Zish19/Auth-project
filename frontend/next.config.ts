@@ -6,7 +6,13 @@ const nextConfig: NextConfig = {
     // function via vercel.json routes — no rewrite needed from Next.js.
     // In local development, proxy to the FastAPI dev server.
     if (process.env.NODE_ENV === "production") {
-      return [];
+      return [
+        {
+          source: "/api/backend/:path*",
+          // Route to the Vercel serverless function (api/index.py)
+          destination: "/api/index/:path*",
+        },
+      ];
     }
 
     const backendOrigin =

@@ -1,10 +1,36 @@
-# zk-session-auth
+# ZK Session Auth
 
-A zero-knowledge session authentication project with a **Next.js** frontend and **FastAPI** backend, deployable as a monorepo to [Vercel](https://vercel.com).
+A zero-knowledge session authentication architecture featuring a Next.js frontend and a FastAPI backend. This project demonstrates a highly secure, JWT-less authentication flow using cryptographic challenge-response proofs and secure HttpOnly sessions, engineered for seamless deployment as a Vercel monorepo.
+
+![Registration and Authentication Demo](assets/demo.webp)
+
+## Table of Contents
+- [Architecture Overview](#architecture-overview)
+- [Key Features](#key-features)
+- [Project Structure](#project-structure)
+- [Deployment Guide](#deployment-guide)
+- [Local Development](#local-development)
+- [Usage Flow](#usage-flow)
+
+## Architecture Overview
+
+The application relies on a decoupled architecture where cryptographic operations are offloaded to the client, preventing private keys from ever being transmitted across the network. 
+
+1. **Registration**: The user registers an identity by binding a username to a cryptographic public key.
+2. **Challenge Request**: During login, the server issues a unique cryptographic challenge.
+3. **Proof Verification**: The client computes a zero-knowledge proof, which the server verifies against the registered public key.
+4. **Session Establishment**: Upon successful verification, the server issues a secure, short-lived HttpOnly session cookie.
+
+## Key Features
+
+- **Zero-Knowledge Authentication**: Secure login flow without transmitting or storing passwords or JWTs.
+- **Challenge-Response Mechanism**: Prevents replay attacks by issuing unique, time-bound challenges.
+- **Secure HttpOnly Sessions**: Mitigates Cross-Site Scripting (XSS) risks associated with local token storage.
+- **Monorepo Design**: Integrated Next.js and FastAPI stack optimized for Vercel Serverless deployments with custom rewrites.
 
 ## Project Structure
 
-```
+```text
 auth-project/
 ├── api/                   # Vercel Python Serverless Function
 │   ├── index.py           # FastAPI entry point (Mangum-wrapped)
@@ -22,88 +48,76 @@ auth-project/
 │   ├── lib/
 │   ├── services/
 │   └── ...
-├── vercel.json            # Monorepo deploy config
-└── requirements.txt       # Local dev Python deps (with uvicorn)
+├── vercel.json            # Monorepo deploy config and edge rewrites
+└── requirements.txt       # Local dev Python dependencies (with uvicorn)
 ```
 
-## Deploying to Vercel
+## Deployment Guide
 
-### One-click deploy (recommended)
+### Vercel Deployment
 
-1. Push this repository to GitHub / GitLab / Bitbucket.
-2. Go to [vercel.com/new](https://vercel.com/new) and import the repository.
-3. Leave the **Root Directory** as `/` (the repo root) — `vercel.json` handles everything.
-4. Add the environment variable **`COOKIE_SECURE=true`** in Vercel project settings.
-5. Click **Deploy**.
+This project is configured for one-click deployment to Vercel via the `vercel.json` and Next.js configuration rewrites.
 
-### Environment Variables
-
-Set these in your Vercel project → Settings → Environment Variables:
+1. Push this repository to GitHub, GitLab, or Bitbucket.
+2. Go to Vercel and import the repository.
+3. Leave the **Root Directory** as `/` (the repository root). The `vercel.json` handles the build pipeline for both Next.js and FastAPI.
+4. Configure the following environment variables in your Vercel project settings:
 
 | Variable | Default | Description |
 |---|---|---|
-| `AUTH_MODE` | `dev_bypass` | Set to `zk` in production to enable real ZK proof verification |
-| `COOKIE_SECURE` | `false` | Set to `true` in production (HTTPS cookies) |
-| `COOKIE_SAMESITE` | `lax` | Cookie SameSite policy |
-| `SESSION_TTL_SECONDS` | `900` | Session timeout (15 min) |
-| `CHALLENGE_TTL_SECONDS` | `60` | Challenge expiry |
-| `REDIS_URL` | *(DummyRedis in-memory)* | Optional: add a Redis URL (e.g., Upstash) for persistent sessions |
+| `AUTH_MODE` | `dev_bypass` | Set to `zk` in production to enable real ZK proof verification. |
+| `COOKIE_SECURE` | `false` | Set to `true` in production to enforce HTTPS-only cookies. |
+| `COOKIE_SAMESITE` | `lax` | Cookie SameSite policy configuration. |
+| `SESSION_TTL_SECONDS` | `900` | Session timeout duration (15 minutes). |
+| `CHALLENGE_TTL_SECONDS` | `60` | Challenge expiration duration. |
+| `REDIS_URL` | *In-memory store* | Required for persistent sessions across serverless cold starts. Add an Upstash Redis URL for production. |
 
-> **Note:** Without a `REDIS_URL`, the backend uses an in-memory store. Sessions are lost on every cold start. For production, add an [Upstash Redis](https://upstash.com) URL.
+5. Click **Deploy**.
 
 ## Local Development
 
 ### Backend (FastAPI)
 
 ```bash
+# Create and activate a virtual environment
 python -m venv .venv
 .venv\Scripts\activate      # Windows
+# source .venv/bin/activate # macOS/Linux
+
+# Install dependencies
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+
+# Start the FastAPI server (watches the app directory to prevent wiping in-memory sessions)
+uvicorn app.main:app --reload --reload-dir app
 ```
 
 ### Frontend (Next.js)
 
 ```bash
 cd frontend
-cp .env.example .env.local  # set NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000
+
+# Set the backend URL for local proxying
+cp .env.example .env.local  
+# Ensure NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000 is set
+
+# Install dependencies and start the development server
 npm install
 npm run dev
 ```
 
-## How it works on Vercel
+## Usage Flow
 
-```
-Browser
-  └─► GET/POST /api/backend/*  ──► Vercel routes ──► api/index.py (Python Serverless)
-  └─► GET /*                   ──► Vercel routes ──► frontend/ (Next.js)
-```
+If you have just deployed the project or are running it locally, follow this flow to test the application:
 
-The `vercel.json` at the repo root configures two build targets:
-- `@vercel/next` builds the Next.js app from `frontend/`
-- `@vercel/python` builds the FastAPI function from `api/index.py`
+### 1. Register an Identity
+1. Navigate to the `/login` route.
+2. Switch to the **register** tab.
+3. Enter a desired username.
+4. Enter a public key (or a dummy string if running in `dev_bypass` mode).
+5. Submit the form. The cryptographic pipeline terminal will display the registration progression.
 
-## User Guide: How to Test the App on Vercel
-
-If you have just deployed the project to Vercel and want to test the full flow of the application:
-
-### Step 0: Ensure Vercel Protection is Disabled
-If your Vercel deployment returns `404 Not Found` or `401 Unauthorized` for backend API requests, it is likely blocked by Vercel Authentication.
-1. Open your Vercel Dashboard for this project.
-2. Go to **Settings** → **Deployment Protection** (or **Vercel Authentication**).
-3. **Disable** "Vercel Authentication" to allow API requests from the frontend to hit the backend without Vercel intercepting them.
-
-### Step 1: Register an Identity
-1. Go to your deployed app url (e.g. `https://your-app.vercel.app/login`).
-2. Click on the **register** tab.
-3. In the **Username** field, enter a desired username (e.g., `shivv`).
-4. In the **Public key** field, enter any dummy string (e.g., `11234567890`) since the app uses `dev_bypass` mode by default.
-5. Click **Create Account**.
-6. The terminal on the right side will display the cryptographic pipeline. You should see "Registering user public key..." followed by "Identity registered".
-
-### Step 2: Login and Authenticate
-1. After successful registration, the app will automatically switch you to the **login** tab.
-2. In the **Username** field, enter the username you just registered (e.g., `shivv`).
-3. Click **Run Authentication**.
-4. The terminal will log the process of requesting a challenge, generating a proof, and verifying it via the backend.
-5. Once verified, you will be securely redirected to the `/dashboard`.
+### 2. Authenticate
+1. After registration, switch to the **login** tab.
+2. Enter the registered username.
+3. Run the authentication sequence. The client will automatically request a challenge, generate a mathematical proof, and send it for verification.
+4. Upon successful verification, you will be redirected to the secure `/dashboard`.
