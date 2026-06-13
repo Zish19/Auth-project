@@ -38,6 +38,17 @@ def test_create_challenge():
     ttl = r.ttl(key)
     assert ttl == settings.CHALLENGE_TTL_SECONDS
 
+from app.services.challenge_service import mark_challenge_used, get_challenge
+
+def test_mark_challenge_used():
+    username = "testuser"
+    challenge_id, challenge = create_challenge(username)
+
+    assert mark_challenge_used(challenge_id) is True
+
+    data = get_challenge(challenge_id)
+    assert data is not None
+    assert data["used"] is True
 
 def test_get_challenge_success():
     r.store.clear()
