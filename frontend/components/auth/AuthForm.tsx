@@ -58,7 +58,6 @@ export function AuthForm() {
         const challengeResponse = await authService.requestLoginChallenge({ username });
         addLog("Challenge received");
         addLog("Generating proof...");
-        await new Promise((resolve) => setTimeout(resolve, 700));
         const proof = simulateProof(challengeResponse.challenge);
         await authService.verifyLoginProof({
           username,
