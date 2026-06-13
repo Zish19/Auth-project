@@ -82,3 +82,28 @@ Browser
 The `vercel.json` at the repo root configures two build targets:
 - `@vercel/next` builds the Next.js app from `frontend/`
 - `@vercel/python` builds the FastAPI function from `api/index.py`
+
+## User Guide: How to Test the App on Vercel
+
+If you have just deployed the project to Vercel and want to test the full flow of the application:
+
+### Step 0: Ensure Vercel Protection is Disabled
+If your Vercel deployment returns `404 Not Found` or `401 Unauthorized` for backend API requests, it is likely blocked by Vercel Authentication.
+1. Open your Vercel Dashboard for this project.
+2. Go to **Settings** → **Deployment Protection** (or **Vercel Authentication**).
+3. **Disable** "Vercel Authentication" to allow API requests from the frontend to hit the backend without Vercel intercepting them.
+
+### Step 1: Register an Identity
+1. Go to your deployed app url (e.g. `https://your-app.vercel.app/login`).
+2. Click on the **register** tab.
+3. In the **Username** field, enter a desired username (e.g., `shivv`).
+4. In the **Public key** field, enter any dummy string (e.g., `11234567890`) since the app uses `dev_bypass` mode by default.
+5. Click **Create Account**.
+6. The terminal on the right side will display the cryptographic pipeline. You should see "Registering user public key..." followed by "Identity registered".
+
+### Step 2: Login and Authenticate
+1. After successful registration, the app will automatically switch you to the **login** tab.
+2. In the **Username** field, enter the username you just registered (e.g., `shivv`).
+3. Click **Run Authentication**.
+4. The terminal will log the process of requesting a challenge, generating a proof, and verifying it via the backend.
+5. Once verified, you will be securely redirected to the `/dashboard`.
