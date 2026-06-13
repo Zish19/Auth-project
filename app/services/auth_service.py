@@ -9,11 +9,16 @@ from app.services.session_service import create_session
 logger = logging.getLogger(__name__)
 
 
-def verify_login_attempt(*, username: str, user_public_key: str, challenge_id: str, R: str, s: str) -> str:
+def verify_login_attempt(*, username: str, user_public_key: str | None, challenge_id: str, R: str, s: str) -> str:
     logger.info(
         "auth.verify.started",
         extra={"username": username, "challenge_id": challenge_id},
     )
+
+    is_dummy = False
+    if user_public_key is None:
+        user_public_key = "dummy_pk"
+        is_dummy = True
 
     challenge = get_challenge(challenge_id)
     if not challenge:
@@ -87,6 +92,16 @@ def verify_login_attempt(*, username: str, user_public_key: str, challenge_id: s
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid proof",
             )
+
+    if is_dummy:
+        logger.warning(
+            "auth.verify.invalid_proof_dummy_user",
+            extra={"username": username, "challenge_id": challenge_id},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid proof",
+        )
 
     if not mark_challenge_used(challenge_id):
         logger.exception(
